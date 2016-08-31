@@ -45,7 +45,7 @@ Vagrantfileの配置されているディレクトリで`vagrant up`で起動し
 ※初回起動時はprovisionが起動されdocker,docker-compose等がインストールされます。
 
 ## ゲストOSへアクセス
-Vagrantfileで設定したIP（デフォルト: 192.168.33.10）へSSHでアクセスできます。「ID / PW : vagrant / vagrant」
+Vagrantfileで設定したIP（デフォルト: 192.168.33.10）へSSHでアクセスできます。(ID / PW : vagrant / vagrant)
 
 ## 停止
 Vagrantfileの配置されているディレクトリで`vagrant halt`で停止します。
