@@ -26,7 +26,6 @@
     config.proxy.https    = "http://<プロキシホスト名>:<プロキシポート>"
     config.proxy.no_proxy = "localhost,127.0.0.1"
   end  ...
-end
 ```
 
 ### その他設定
