@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 # for Windows8
-Encoding.default_external = 'SJIS' 
+#Encoding.default_external = 'SJIS' 
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
@@ -17,6 +17,10 @@ Vagrant.configure("2") do |config|
     config.proxy.no_proxy = "localhost,127.0.0.1"
   end
 
+  if Vagrant.has_plugin?("vagrant-disksize")
+    config.disksize.size = '30GB'
+  end
+
   if Vagrant.has_plugin?("vagrant-vbguest")
     # set auto_update to false, if you do NOT want to check the correct
     config.vbguest.auto_update = true
@@ -28,7 +32,8 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "ubuntu/trusty64"
+  #config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "ubuntu/bionic64"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -39,6 +44,9 @@ Vagrant.configure("2") do |config|
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.network "forwarded_port", guest: 80, host: 10080
+  config.vm.network "forwarded_port", guest: 1521, host: 1521
+  config.vm.network "forwarded_port", guest: 8080, host: 18080
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
@@ -53,19 +61,19 @@ Vagrant.configure("2") do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  # config.vm.synced_folder "../data", "/vagrant_data"
+  config.vm.synced_folder "../data", "/vagrant_data"
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
   #
-  # config.vm.provider "virtualbox" do |vb|
-  #   # Display the VirtualBox GUI when booting the machine
-  #   vb.gui = true
-  #
-  #   # Customize the amount of memory on the VM:
-  #   vb.memory = "1024"
-  # end
+  config.vm.provider "virtualbox" do |vb|
+    # Display the VirtualBox GUI when booting the machine
+    vb.gui = false
+ 
+    # Customize the amount of memory on the VM:
+    vb.memory = "4096"
+  end
   #
   # View the documentation for the provider you are using for more
   # information on available options.
@@ -83,18 +91,22 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
       test -f /etc/bootstrapped && exit
 
-      apt-get update
-      apt-get install -y apt-transport-https ca-certificates
-      apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
-      echo "deb https://apt.dockerproject.org/repo ubuntu-trusty main" > /etc/apt/sources.list.d/docker.list
-      apt-get update
-      apt-get purge lxc-docker
-      apt-cache policy docker-engine
-      apt-get install -y docker-engine
-      service docker restart
-      
-      curl -s -S -L https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-      chmod +x /usr/local/bin/docker-compose
+      sudo apt-get update
+      sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+      sudo apt-key fingerprint 0EBFCD88
+      sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+      sudo apt-get update
+      sudo apt-get install -y docker-ce
+      apt-cache madison docker-ce
+      sudo apt-get install -y docker-ce=18.06.1~ce~3-0~ubuntu
+
+      sudo usermod -aG docker vagrant
+
+      sudo curl -L "https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      sudo chmod +x /usr/local/bin/docker-compose
+      docker-compose --version
 
       date > /etc/bootstrapped
   SHELL
